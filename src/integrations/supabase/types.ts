@@ -14,7 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      weighbridge_records: {
+        Row: {
+          created_at: string
+          do_number: string | null
+          driver_name: string | null
+          gross_weight: number
+          id: string
+          material_type: string
+          net_weight: number
+          origin_pt: string | null
+          plate_number: string
+          status: string
+          tare_weight: number
+          time_in: string | null
+          time_out: string | null
+          vendor_name: string
+        }
+        Insert: {
+          created_at?: string
+          do_number?: string | null
+          driver_name?: string | null
+          gross_weight?: number
+          id?: string
+          material_type: string
+          net_weight?: number
+          origin_pt?: string | null
+          plate_number: string
+          status?: string
+          tare_weight?: number
+          time_in?: string | null
+          time_out?: string | null
+          vendor_name: string
+        }
+        Update: {
+          created_at?: string
+          do_number?: string | null
+          driver_name?: string | null
+          gross_weight?: number
+          id?: string
+          material_type?: string
+          net_weight?: number
+          origin_pt?: string | null
+          plate_number?: string
+          status?: string
+          tare_weight?: number
+          time_in?: string | null
+          time_out?: string | null
+          vendor_name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
