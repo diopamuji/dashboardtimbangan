@@ -19,18 +19,18 @@ export interface WeighbridgeRecord {
 
 export const MATERIAL_LABELS: Record<MaterialType, string> = {
   COAL: "Batubara",
-  BIOMASS: "Biomass (Sawdust)",
+  BIOMASS: "Sawdust",
   FABA: "FABA",
-  CHEMICAL: "Chemicals",
-  FUEL: "BBM (Fuel)",
+  CHEMICAL: "Chemical",
+  FUEL: "BBM",
 };
 
 export const MATERIAL_SHORT: Record<MaterialType, string> = {
-  COAL: "Coal",
-  BIOMASS: "Biomass",
+  COAL: "Batubara",
+  BIOMASS: "Sawdust",
   FABA: "FABA",
   CHEMICAL: "Chemical",
-  FUEL: "Fuel",
+  FUEL: "BBM",
 };
 
 export const MATERIAL_COLORS: Record<MaterialType, string> = {
@@ -41,13 +41,22 @@ export const MATERIAL_COLORS: Record<MaterialType, string> = {
   FUEL: "var(--mat-fuel)",
 };
 
-export const ALL_MATERIALS: MaterialType[] = ["COAL", "BIOMASS", "FABA", "CHEMICAL", "FUEL"];
+// Only these 4 materials are surfaced in the application UI.
+export const ALL_MATERIALS: MaterialType[] = ["COAL", "BIOMASS", "FABA", "CHEMICAL"];
+export const ALLOWED_MATERIALS = ALL_MATERIALS;
 
-export const SAMPLING_INTERVAL = 5; // every 5th coal truck per vendor per day
+export function fmtKg(kg: number | null | undefined) {
+  if (kg == null) return "-";
+  return `${Number(kg).toLocaleString("id-ID", { maximumFractionDigits: 0 })} Kg`;
+}
 
 export function fmtMT(kg: number | null | undefined) {
   if (kg == null) return "-";
   return `${Number(kg).toLocaleString("id-ID", { maximumFractionDigits: 2 })} MT`;
+}
+
+export function kgToMT(kg: number) {
+  return kg / 1000;
 }
 
 export function fmtTime(iso: string | null | undefined) {
@@ -74,26 +83,36 @@ export function todayRange(): { start: string; end: string } {
   return { start: start.toISOString(), end: end.toISOString() };
 }
 
-/**
- * Sampling logic: every SAMPLING_INTERVAL-th COAL truck for the same vendor,
- * counted within the current day, must trigger manual sampling.
- * Given the list of coal records (any date range) it returns a map of id -> sampling index.
- * A record needs sampling if its ordinal (1-based, ordered by time_in within vendor+day) % 5 === 0.
- */
-export function computeSampling(records: WeighbridgeRecord[]) {
-  const coal = records
-    .filter((r) => r.material_type === "COAL")
-    .slice()
-    .sort((a, b) => (a.time_in ?? a.created_at).localeCompare(b.time_in ?? b.created_at));
+export function monthRange(): { start: string; end: string } {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), 1);
+  const end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  return { start: start.toISOString(), end: end.toISOString() };
+}
 
+export function yearRange(): { start: string; end: string } {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 1);
+  const end = new Date(now.getFullYear() + 1, 0, 1);
+  return { start: start.toISOString(), end: end.toISOString() };
+}
+
+/**
+ * Sequential arrival counter per vendor per day, for coal (or any material).
+ * Returns a map of record id -> arrival ordinal for its vendor+day.
+ */
+export function computeVendorArrival(records: WeighbridgeRecord[]) {
+  const sorted = records.slice().sort((a, b) =>
+    (a.time_in ?? a.created_at).localeCompare(b.time_in ?? b.created_at),
+  );
   const counters = new Map<string, number>();
-  const result = new Map<string, { ordinal: number; sampling: boolean }>();
-  for (const r of coal) {
+  const result = new Map<string, number>();
+  for (const r of sorted) {
     const day = (r.time_in ?? r.created_at).slice(0, 10);
     const key = `${r.vendor_name}::${day}`;
     const next = (counters.get(key) ?? 0) + 1;
     counters.set(key, next);
-    result.set(r.id, { ordinal: next, sampling: next % SAMPLING_INTERVAL === 0 });
+    result.set(r.id, next);
   }
   return result;
 }
