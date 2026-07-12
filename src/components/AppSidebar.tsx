@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Radio, Archive, Zap } from "lucide-react";
+import { LayoutDashboard, Archive, Zap } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -14,9 +14,8 @@ import {
 } from "@/components/ui/sidebar";
 
 const items = [
-  { title: "Real-Time Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Live Monitor & Sampling", url: "/live", icon: Radio },
-  { title: "Historical Data / Digital Archive", url: "/history", icon: Archive },
+  { title: "Dashboard", url: "/", icon: LayoutDashboard },
+  { title: "Data Historis / Arsip Digital", url: "/history", icon: Archive },
 ];
 
 export function AppSidebar() {
@@ -40,7 +39,7 @@ export function AppSidebar() {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Logistics & Weighbridge</SidebarGroupLabel>
+          <SidebarGroupLabel>Logistik & Jembatan Timbang</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => {
@@ -63,7 +62,7 @@ export function AppSidebar() {
 
       <SidebarFooter className="border-t border-sidebar-border">
         <div className="px-2 py-2 text-[10px] text-sidebar-foreground/60 group-data-[collapsible=icon]:hidden">
-          Auto-sync every 10s
+          Sinkron otomatis tiap 10 detik
         </div>
       </SidebarFooter>
     </Sidebar>

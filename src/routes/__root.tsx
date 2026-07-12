@@ -23,16 +23,17 @@ function NotFoundComponent() {
         <h1 className="text-7xl font-bold text-primary">404</h1>
         <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist.
+          Halaman yang Anda cari tidak ditemukan.
         </p>
         <div className="mt-6">
           <Link
             to="/"
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            Back to Dashboard
+            Kembali ke Dashboard
           </Link>
         </div>
+
       </div>
     </div>
   );
@@ -139,13 +140,14 @@ function RootComponent() {
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
                 </span>
                 <span className="text-xs font-medium text-muted-foreground">
-                  Live sync · every 10s
+                  Live sync · tiap 10 detik
                 </span>
               </div>
               <div className="ml-auto hidden items-center gap-2 text-xs text-muted-foreground md:flex">
                 <Radio className="h-3.5 w-3.5" />
-                Weighbridge DBF → Cloud
+                Jembatan Timbang DBF → Cloud
               </div>
+
             </header>
             <main className="flex-1 min-w-0">
               <Outlet />

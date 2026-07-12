@@ -55,9 +55,10 @@ export function DOReceipt({ record }: Props) {
 
       {/* Weights */}
       <div className="mt-4 grid grid-cols-3 gap-3 rounded-md bg-secondary p-3">
-        <Weight label="GROSS" value={record.gross_weight} />
-        <Weight label="TARE" value={record.tare_weight} />
+        <Weight label="BRUTO" value={record.gross_weight} />
+        <Weight label="TARA" value={record.tare_weight} />
         <Weight label="NETTO" value={record.net_weight} highlight />
+
       </div>
 
       {/* Footer with QR */}
@@ -95,9 +96,10 @@ function Weight({ label, value, highlight }: { label: string; value: number; hig
     >
       <div className="text-[10px] uppercase tracking-wider opacity-80">{label}</div>
       <div className="text-lg font-bold">
-        {Number(value).toLocaleString("id-ID", { maximumFractionDigits: 2 })}
+        {Number(value).toLocaleString("id-ID", { maximumFractionDigits: 0 })}
       </div>
-      <div className="text-[10px] opacity-80">MT</div>
+      <div className="text-[10px] opacity-80">Kg</div>
     </div>
+
   );
 }
