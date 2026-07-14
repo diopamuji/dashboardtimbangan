@@ -82,7 +82,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "PLTU Ombilin — Logistics & Weighbridge Dashboard" },
+      { title: "PLTU Ombilin — Weighbridge Dashboard" },
       {
         name: "description",
         content:
@@ -92,14 +92,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         property: "og:description",
         content:
-          "Real-time logistics monitoring for coal, biomass, FABA, chemicals, and fuel deliveries.",
+          "Real-time weighbridge monitoring, sampling alerts, and digital DO archive for PLTU Ombilin (PT PLN Indonesia Power).",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "PLTU Ombilin — Weighbridge Dashboard" },
+      { name: "twitter:description", content: "Real-time weighbridge monitoring, sampling alerts, and digital DO archive for PLTU Ombilin (PT PLN Indonesia Power)." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/2c4db7f4-2b5d-4171-9ac7-0b0cace38ded" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/2c4db7f4-2b5d-4171-9ac7-0b0cace38ded" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
   }),
   shellComponent: RootShell,
