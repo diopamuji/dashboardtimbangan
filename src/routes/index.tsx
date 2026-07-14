@@ -37,6 +37,7 @@ export const Route = createFileRoute("/")({
 
 const MATERIAL_HEX: Record<MaterialType, string> = {
   COAL: "#3d3d4e",
+  REJECT_COAL: "#991b1b",
   BIOMASS: "#4ea36b",
   FABA: "#a37a3d",
   CHEMICAL: "#8b4fbf",
@@ -45,6 +46,7 @@ const MATERIAL_HEX: Record<MaterialType, string> = {
 
 const MATERIAL_TONE: Record<MaterialType, string> = {
   COAL: "bg-slate-700 text-white",
+  REJECT_COAL: "bg-red-700 text-white",
   BIOMASS: "bg-emerald-600 text-white",
   FABA: "bg-amber-700 text-white",
   CHEMICAL: "bg-violet-600 text-white",
