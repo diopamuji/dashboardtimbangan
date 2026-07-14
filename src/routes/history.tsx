@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Download, Eye, FileSearch, Filter, Search, X } from "lucide-react";
+import { Download, FileSearch, Filter, Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,13 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useHistory, useVendors, type HistoryFilters } from "@/lib/wb-queries";
 import {
@@ -33,7 +26,6 @@ import {
   type MaterialType,
   type WeighbridgeRecord,
 } from "@/lib/wb";
-import { DOReceipt } from "@/components/DOReceipt";
 
 export const Route = createFileRoute("/history")({
   component: HistoryPage,
@@ -67,7 +59,6 @@ function HistoryPage() {
     plate: "",
     spk: "",
   });
-  const [selected, setSelected] = useState<WeighbridgeRecord | null>(null);
   const [view, setView] = useState<ReportView>("harian");
 
   const { data: records = [], isLoading } = useHistory(filters);
@@ -79,7 +70,7 @@ function HistoryPage() {
       return;
     }
     const headers = [
-      "Nomor SPK/DO",
+      "Nomor SPK",
       "No Polisi",
       "Pemasok",
       "Material",
@@ -130,10 +121,10 @@ function HistoryPage() {
         <div>
           <div className="flex items-center gap-2">
             <FileSearch className="h-4 w-4 text-primary" />
-            <h1 className="text-2xl font-bold text-foreground">Data Historis & Arsip Digital DO</h1>
+            <h1 className="text-2xl font-bold text-foreground">Data Historis & Arsip Digital</h1>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Riwayat jembatan timbang siap audit — filter, ekspor, dan lihat DO digital.
+            Riwayat jembatan timbang siap audit — filter, ekspor, dan lihat arsip digital.
           </p>
         </div>
         <Button onClick={exportCSV} className="bg-gradient-gold text-primary hover:opacity-90">
@@ -246,7 +237,7 @@ function HistoryPage() {
         </div>
 
         <TabsContent value="harian" className="mt-4">
-          <DetailTable records={records} loading={isLoading} onView={setSelected} />
+          <DetailTable records={records} loading={isLoading} />
         </TabsContent>
         <TabsContent value="kendaraan" className="mt-4">
           <GroupedTable
@@ -298,17 +289,6 @@ function HistoryPage() {
         </TabsContent>
       </Tabs>
 
-      <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Delivery Order Digital</DialogTitle>
-            <DialogDescription>
-              Sah sebagai pengganti DO fisik untuk audit digital.
-            </DialogDescription>
-          </DialogHeader>
-          {selected && <DOReceipt record={selected} />}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
@@ -318,11 +298,9 @@ function HistoryPage() {
 function DetailTable({
   records,
   loading,
-  onView,
 }: {
   records: WeighbridgeRecord[];
   loading: boolean;
-  onView: (r: WeighbridgeRecord) => void;
 }) {
   return (
     <Card className="shadow-card">
@@ -331,27 +309,26 @@ function DetailTable({
           <Table>
             <TableHeader>
               <TableRow className="bg-secondary/50">
-                <TableHead className="pl-6">Nomor SPK/DO</TableHead>
+                <TableHead className="pl-6">Nomor SPK</TableHead>
                 <TableHead>No Polisi</TableHead>
                 <TableHead>Pemasok</TableHead>
                 <TableHead>Material</TableHead>
                 <TableHead className="text-right">Netto</TableHead>
                 <TableHead>Jam Masuk</TableHead>
                 <TableHead>Jam Keluar</TableHead>
-                <TableHead className="pr-6 text-right">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading && (
                 <TableRow>
-                  <TableCell colSpan={8} className="py-10 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={7} className="py-10 text-center text-sm text-muted-foreground">
                     Memuat...
                   </TableCell>
                 </TableRow>
               )}
               {!loading && records.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={8} className="py-10 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={7} className="py-10 text-center text-sm text-muted-foreground">
                     Tidak ada data yang cocok dengan filter.
                   </TableCell>
                 </TableRow>
@@ -369,12 +346,6 @@ function DetailTable({
                   </TableCell>
                   <TableCell className="text-xs">{fmtDateTime(r.time_in)}</TableCell>
                   <TableCell className="text-xs">{fmtDateTime(r.time_out)}</TableCell>
-                  <TableCell className="pr-6 text-right">
-                    <Button size="sm" variant="outline" onClick={() => onView(r)}>
-                      <Eye className="mr-1 h-3.5 w-3.5" />
-                      Lihat DO
-                    </Button>
-                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
