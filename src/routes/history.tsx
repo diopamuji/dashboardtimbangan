@@ -480,6 +480,7 @@ function MasterList({ title, values }: { title: string; values: string[] }) {
 
 const MATERIAL_TONE: Record<MaterialType, string> = {
   COAL: "bg-slate-700 text-white",
+  REJECT_COAL: "bg-red-700 text-white",
   BIOMASS: "bg-emerald-600 text-white",
   FABA: "bg-amber-700 text-white",
   CHEMICAL: "bg-violet-600 text-white",
