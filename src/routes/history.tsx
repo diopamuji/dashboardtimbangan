@@ -24,6 +24,7 @@ import {
   fmtDateTime,
   fmtKg,
   type MaterialType,
+  type WeighbridgeRecord,
 } from "@/lib/wb";
 
 export const Route = createFileRoute("/history")({
@@ -69,7 +70,7 @@ function HistoryPage() {
       return;
     }
     const headers = [
-      "Nomor SPK/DO",
+      "Nomor SPK",
       "No Polisi",
       "Pemasok",
       "Material",
@@ -297,11 +298,9 @@ function HistoryPage() {
 function DetailTable({
   records,
   loading,
-  onView,
 }: {
   records: WeighbridgeRecord[];
   loading: boolean;
-  onView: (r: WeighbridgeRecord) => void;
 }) {
   return (
     <Card className="shadow-card">
@@ -310,7 +309,7 @@ function DetailTable({
           <Table>
             <TableHeader>
               <TableRow className="bg-secondary/50">
-                <TableHead className="pl-6">Nomor SPK/DO</TableHead>
+                <TableHead className="pl-6">Nomor SPK</TableHead>
                 <TableHead>No Polisi</TableHead>
                 <TableHead>Pemasok</TableHead>
                 <TableHead>Material</TableHead>
