@@ -118,7 +118,7 @@ function DashboardPage() {
       </div>
 
       {/* Material breakdown mini-cards (only 4 allowed materials) */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
         {ALL_MATERIALS.map((m) => (
           <div key={m} className="rounded-lg border border-border bg-card p-3 shadow-card">
             <div className="flex items-center gap-2">
