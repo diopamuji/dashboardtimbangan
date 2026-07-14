@@ -130,10 +130,10 @@ function HistoryPage() {
         <div>
           <div className="flex items-center gap-2">
             <FileSearch className="h-4 w-4 text-primary" />
-            <h1 className="text-2xl font-bold text-foreground">Data Historis & Arsip Digital DO</h1>
+            <h1 className="text-2xl font-bold text-foreground">Data Historis & Arsip Digital</h1>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Riwayat jembatan timbang siap audit — filter, ekspor, dan lihat DO digital.
+            Riwayat jembatan timbang siap audit — filter, ekspor, dan lihat arsip digital.
           </p>
         </div>
         <Button onClick={exportCSV} className="bg-gradient-gold text-primary hover:opacity-90">
@@ -338,20 +338,19 @@ function DetailTable({
                 <TableHead className="text-right">Netto</TableHead>
                 <TableHead>Jam Masuk</TableHead>
                 <TableHead>Jam Keluar</TableHead>
-                <TableHead className="pr-6 text-right">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading && (
                 <TableRow>
-                  <TableCell colSpan={8} className="py-10 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={7} className="py-10 text-center text-sm text-muted-foreground">
                     Memuat...
                   </TableCell>
                 </TableRow>
               )}
               {!loading && records.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={8} className="py-10 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={7} className="py-10 text-center text-sm text-muted-foreground">
                     Tidak ada data yang cocok dengan filter.
                   </TableCell>
                 </TableRow>
@@ -369,12 +368,6 @@ function DetailTable({
                   </TableCell>
                   <TableCell className="text-xs">{fmtDateTime(r.time_in)}</TableCell>
                   <TableCell className="text-xs">{fmtDateTime(r.time_out)}</TableCell>
-                  <TableCell className="pr-6 text-right">
-                    <Button size="sm" variant="outline" onClick={() => onView(r)}>
-                      <Eye className="mr-1 h-3.5 w-3.5" />
-                      Lihat DO
-                    </Button>
-                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
