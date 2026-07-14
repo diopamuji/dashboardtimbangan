@@ -66,7 +66,7 @@ function DashboardPage() {
 
   const totals = useMemo(() => {
     const byMaterial: Record<MaterialType, number> = {
-      COAL: 0, BIOMASS: 0, FABA: 0, CHEMICAL: 0, FUEL: 0,
+      COAL: 0, REJECT_COAL: 0, BIOMASS: 0, FABA: 0, CHEMICAL: 0, FUEL: 0,
     };
     const vendors = new Set<string>();
     for (const r of todayRecords) {
