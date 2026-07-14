@@ -86,7 +86,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "Real-time weighbridge monitoring, sampling alerts, and digital DO archive for PLTU Ombilin (PT PLN Nusantara Power).",
+          "Real-time weighbridge monitoring, sampling alerts, and digital DO archive for PLTU Ombilin (PT PLN Indonesia Power).",
       },
       { property: "og:title", content: "PLTU Ombilin — Weighbridge Dashboard" },
       {

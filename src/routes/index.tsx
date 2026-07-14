@@ -37,6 +37,7 @@ export const Route = createFileRoute("/")({
 
 const MATERIAL_HEX: Record<MaterialType, string> = {
   COAL: "#3d3d4e",
+  REJECT_COAL: "#991b1b",
   BIOMASS: "#4ea36b",
   FABA: "#a37a3d",
   CHEMICAL: "#8b4fbf",
@@ -45,6 +46,7 @@ const MATERIAL_HEX: Record<MaterialType, string> = {
 
 const MATERIAL_TONE: Record<MaterialType, string> = {
   COAL: "bg-slate-700 text-white",
+  REJECT_COAL: "bg-red-700 text-white",
   BIOMASS: "bg-emerald-600 text-white",
   FABA: "bg-amber-700 text-white",
   CHEMICAL: "bg-violet-600 text-white",
@@ -64,7 +66,7 @@ function DashboardPage() {
 
   const totals = useMemo(() => {
     const byMaterial: Record<MaterialType, number> = {
-      COAL: 0, BIOMASS: 0, FABA: 0, CHEMICAL: 0, FUEL: 0,
+      COAL: 0, REJECT_COAL: 0, BIOMASS: 0, FABA: 0, CHEMICAL: 0, FUEL: 0,
     };
     const vendors = new Set<string>();
     for (const r of todayRecords) {
@@ -116,7 +118,7 @@ function DashboardPage() {
       </div>
 
       {/* Material breakdown mini-cards (only 4 allowed materials) */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
         {ALL_MATERIALS.map((m) => (
           <div key={m} className="rounded-lg border border-border bg-card p-3 shadow-card">
             <div className="flex items-center gap-2">

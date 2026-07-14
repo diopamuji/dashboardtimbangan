@@ -1,4 +1,4 @@
-export type MaterialType = "COAL" | "BIOMASS" | "FABA" | "CHEMICAL" | "FUEL";
+export type MaterialType = "COAL" | "REJECT_COAL" | "BIOMASS" | "FABA" | "CHEMICAL" | "FUEL";
 
 export interface WeighbridgeRecord {
   id: string;
@@ -19,6 +19,7 @@ export interface WeighbridgeRecord {
 
 export const MATERIAL_LABELS: Record<MaterialType, string> = {
   COAL: "Batubara",
+  REJECT_COAL: "Reject Batubara",
   BIOMASS: "Sawdust",
   FABA: "FABA",
   CHEMICAL: "Chemical",
@@ -27,6 +28,7 @@ export const MATERIAL_LABELS: Record<MaterialType, string> = {
 
 export const MATERIAL_SHORT: Record<MaterialType, string> = {
   COAL: "Batubara",
+  REJECT_COAL: "Reject Batubara",
   BIOMASS: "Sawdust",
   FABA: "FABA",
   CHEMICAL: "Chemical",
@@ -35,14 +37,15 @@ export const MATERIAL_SHORT: Record<MaterialType, string> = {
 
 export const MATERIAL_COLORS: Record<MaterialType, string> = {
   COAL: "var(--mat-coal)",
+  REJECT_COAL: "var(--mat-coal)",
   BIOMASS: "var(--mat-biomass)",
   FABA: "var(--mat-faba)",
   CHEMICAL: "var(--mat-chemical)",
   FUEL: "var(--mat-fuel)",
 };
 
-// Only these 4 materials are surfaced in the application UI.
-export const ALL_MATERIALS: MaterialType[] = ["COAL", "BIOMASS", "FABA", "CHEMICAL"];
+// Only these materials are surfaced in the application UI.
+export const ALL_MATERIALS: MaterialType[] = ["COAL", "REJECT_COAL", "BIOMASS", "FABA", "CHEMICAL"];
 export const ALLOWED_MATERIALS = ALL_MATERIALS;
 
 export function fmtKg(kg: number | null | undefined) {

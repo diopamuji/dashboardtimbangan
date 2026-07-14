@@ -31,7 +31,7 @@ export function AppSidebar() {
           <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
             <span className="text-sm font-bold text-sidebar-foreground">PLTU Ombilin</span>
             <span className="text-[10px] uppercase tracking-wider text-sidebar-foreground/70">
-              PLN Nusantara Power
+              PLN Indonesia Power
             </span>
           </div>
         </div>
