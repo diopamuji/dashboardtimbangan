@@ -15,13 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useHistory, useVendors, type HistoryFilters } from "@/lib/wb-queries";
 import {
@@ -31,9 +24,7 @@ import {
   fmtDateTime,
   fmtKg,
   type MaterialType,
-  type WeighbridgeRecord,
 } from "@/lib/wb";
-import { DOReceipt } from "@/components/DOReceipt";
 
 export const Route = createFileRoute("/history")({
   component: HistoryPage,
@@ -67,7 +58,6 @@ function HistoryPage() {
     plate: "",
     spk: "",
   });
-  const [selected, setSelected] = useState<WeighbridgeRecord | null>(null);
   const [view, setView] = useState<ReportView>("harian");
 
   const { data: records = [], isLoading } = useHistory(filters);
@@ -246,7 +236,7 @@ function HistoryPage() {
         </div>
 
         <TabsContent value="harian" className="mt-4">
-          <DetailTable records={records} loading={isLoading} onView={setSelected} />
+          <DetailTable records={records} loading={isLoading} />
         </TabsContent>
         <TabsContent value="kendaraan" className="mt-4">
           <GroupedTable
@@ -298,17 +288,6 @@ function HistoryPage() {
         </TabsContent>
       </Tabs>
 
-      <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Delivery Order Digital</DialogTitle>
-            <DialogDescription>
-              Sah sebagai pengganti DO fisik untuk audit digital.
-            </DialogDescription>
-          </DialogHeader>
-          {selected && <DOReceipt record={selected} />}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
