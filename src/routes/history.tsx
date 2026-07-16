@@ -180,10 +180,9 @@ function HistoryPage() {
       console.error(err);
       toast.error("Gagal membuat file Excel");
     }
-    void COLS_UNUSED;
   }
 
-  const COLS_UNUSED = 0;
+
 
   function resetFilters() {
     setFilters({ from: "", to: todayStr(), material: "ALL", vendor: "", plate: "", spk: "" });
