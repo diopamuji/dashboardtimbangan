@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Download, FileSearch, Filter, Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -21,7 +20,7 @@ import {
   ALL_MATERIALS,
   MATERIAL_LABELS,
   MATERIAL_SHORT,
-  fmtDateTime,
+  fmtDateTimeShort,
   fmtKg,
   type MaterialType,
   type WeighbridgeRecord,
@@ -34,84 +33,160 @@ export const Route = createFileRoute("/history")({
 function todayStr() {
   return new Date().toISOString().slice(0, 10);
 }
-function weekAgoStr() {
-  const d = new Date();
-  d.setDate(d.getDate() - 7);
-  return d.toISOString().slice(0, 10);
-}
-
-type ReportView =
-  | "harian"
-  | "kendaraan"
-  | "product"
-  | "customer"
-  | "spk"
-  | "daftar_product"
-  | "daftar_customer"
-  | "daftar_transporter";
 
 function HistoryPage() {
   const [filters, setFilters] = useState<HistoryFilters>({
-    from: weekAgoStr(),
+    from: "",
     to: todayStr(),
     material: "ALL",
     vendor: "",
     plate: "",
     spk: "",
   });
-  const [view, setView] = useState<ReportView>("harian");
 
   const { data: records = [], isLoading } = useHistory(filters);
   const { data: vendors = [] } = useVendors();
 
-  function exportCSV() {
+  async function exportExcel() {
     if (records.length === 0) {
       toast.error("Tidak ada data untuk diekspor");
       return;
     }
-    const headers = [
-      "Nomor SPK",
-      "No Polisi",
-      "Pemasok",
-      "Material",
-      "Bruto (Kg)",
-      "Tara (Kg)",
-      "Netto (Kg)",
-      "Jam Masuk",
-      "Jam Keluar",
-      "Status",
-      "PT Asal",
-      "Driver",
-    ];
-    const rows = records.map((r) => [
-      r.do_number ?? "",
-      r.plate_number,
-      r.vendor_name,
-      MATERIAL_LABELS[r.material_type],
-      r.gross_weight,
-      r.tare_weight,
-      r.net_weight,
-      r.time_in ?? "",
-      r.time_out ?? "",
-      r.status,
-      r.origin_pt ?? "",
-      r.driver_name ?? "",
-    ]);
-    const csv = [headers, ...rows]
-      .map((row) => row.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
-      .join("\n");
-    const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `weighbridge-ombilin-${filters.from ?? ""}_to_${filters.to ?? ""}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success(`${records.length} baris berhasil diekspor`);
+    try {
+      const ExcelJS = (await import("exceljs")).default;
+      const wb = new ExcelJS.Workbook();
+      const ws = wb.addWorksheet("Laporan Penimbangan");
+
+      const COLS = 11;
+      const lastColLetter = "K";
+
+      // Header kop surat
+      ws.getCell("A1").value = "PLTU OMBILIN";
+      ws.getCell("A1").font = { bold: true, size: 12 };
+      ws.getCell("A2").value = "JI Prof. M Yamin, SH";
+      ws.getCell("A3").value = "Talawi";
+      // baris 4 kosong
+
+      // Judul utama (baris 5)
+      ws.mergeCells(`A5:${lastColLetter}5`);
+      const title = ws.getCell("A5");
+      title.value = "Laporan Penimbangan";
+      title.font = { bold: true, size: 14 };
+      title.alignment = { horizontal: "center" };
+
+      // Info filter kiri (mulai baris 7)
+      const fmtDMY = (s?: string) => {
+        if (!s) return "-";
+        const [y, m, d] = s.split("-");
+        return `${d}/${m}/${y}`;
+      };
+      const filterLines: string[] = [
+        `Periode ${fmtDMY(filters.from)} s/d ${fmtDMY(filters.to)}`,
+      ];
+      if (filters.material && filters.material !== "ALL") {
+        filterLines.push(`Material: ${filters.material} - ${MATERIAL_LABELS[filters.material as MaterialType] ?? filters.material}`);
+      }
+      if (filters.vendor) filterLines.push(`Pemasok: ${filters.vendor}`);
+      if (filters.plate) filterLines.push(`No Polisi: ${filters.plate}`);
+      if (filters.spk) filterLines.push(`Nomor SPK: ${filters.spk}`);
+
+      filterLines.forEach((line, i) => {
+        const c = ws.getCell(`A${7 + i}`);
+        c.value = line;
+        c.alignment = { horizontal: "left" };
+      });
+
+      // Tanggal cetak kanan (baris 7)
+      const now = new Date();
+      const pad = (n: number) => String(n).padStart(2, "0");
+      const printDate = `${pad(now.getDate())}-${pad(now.getMonth() + 1)}-${now.getFullYear()}`;
+      const tglCell = ws.getCell(`${lastColLetter}7`);
+      tglCell.value = `Tanggal: ${printDate}`;
+      tglCell.alignment = { horizontal: "right" };
+
+      // Header tabel
+      const headerRowIdx = 7 + Math.max(filterLines.length, 1) + 1;
+      const headers = [
+        "Nomor DO", "No Polisi", "Pemasok", "Material",
+        "Bruto", "Tara", "Netto",
+        "Jam Masuk", "Jam Keluar", "Status", "Urutan Kedatangan",
+      ];
+      const headerRow = ws.getRow(headerRowIdx);
+      headers.forEach((h, i) => {
+        const cell = headerRow.getCell(i + 1);
+        cell.value = h;
+        cell.font = { bold: true };
+        cell.alignment = { horizontal: "center", vertical: "middle" };
+        cell.border = {
+          top: { style: "thin" }, left: { style: "thin" },
+          bottom: { style: "thin" }, right: { style: "thin" },
+        };
+      });
+
+      // Data rows
+      const sorted = records.slice().sort((a, b) =>
+        (a.time_in ?? a.created_at).localeCompare(b.time_in ?? b.created_at),
+      );
+      const vendorCounters = new Map<string, number>();
+      sorted.forEach((r, idx) => {
+        const day = (r.time_in ?? r.created_at).slice(0, 10);
+        const key = `${r.vendor_name}::${day}`;
+        const ord = (vendorCounters.get(key) ?? 0) + 1;
+        vendorCounters.set(key, ord);
+        const row = ws.getRow(headerRowIdx + 1 + idx);
+        const values = [
+          r.do_number ?? "",
+          r.plate_number,
+          r.vendor_name,
+          MATERIAL_LABELS[r.material_type],
+          Number(r.gross_weight),
+          Number(r.tare_weight),
+          Number(r.net_weight),
+          fmtDateTimeShort(r.time_in),
+          fmtDateTimeShort(r.time_out),
+          r.status,
+          `Truk #${ord}`,
+        ];
+        values.forEach((v, i) => {
+          const cell = row.getCell(i + 1);
+          cell.value = v as string | number;
+          cell.border = {
+            top: { style: "thin" }, left: { style: "thin" },
+            bottom: { style: "thin" }, right: { style: "thin" },
+          };
+          if (i >= 4 && i <= 6) {
+            cell.numFmt = "#,##0.00";
+            cell.alignment = { horizontal: "right" };
+          }
+        });
+      });
+
+      // Column widths
+      const widths = [16, 14, 26, 18, 14, 14, 14, 20, 20, 14, 18];
+      widths.forEach((w, i) => { ws.getColumn(i + 1).width = w; });
+
+      const buf = await wb.xlsx.writeBuffer();
+      const blob = new Blob([buf], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `laporan-penimbangan-${filters.from || "all"}_${filters.to || "all"}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`${records.length} baris berhasil diekspor`);
+    } catch (err) {
+      console.error(err);
+      toast.error("Gagal membuat file Excel");
+    }
+    void COLS_UNUSED;
   }
 
+  const COLS_UNUSED = 0;
+
   function resetFilters() {
-    setFilters({ from: weekAgoStr(), to: todayStr(), material: "ALL", vendor: "", plate: "", spk: "" });
+    setFilters({ from: "", to: todayStr(), material: "ALL", vendor: "", plate: "", spk: "" });
   }
 
   return (
@@ -121,15 +196,15 @@ function HistoryPage() {
         <div>
           <div className="flex items-center gap-2">
             <FileSearch className="h-4 w-4 text-primary" />
-            <h1 className="text-2xl font-bold text-foreground">Data Historis & Arsip Digital</h1>
+            <h1 className="text-2xl font-bold text-foreground">Data Historis</h1>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Riwayat jembatan timbang siap audit — filter, ekspor, dan lihat arsip digital.
+            Rekap seluruh transaksi jembatan timbang PLTU Ombilin.
           </p>
         </div>
-        <Button onClick={exportCSV} className="bg-gradient-gold text-primary hover:opacity-90">
+        <Button onClick={exportExcel} className="bg-gradient-gold text-primary hover:opacity-90">
           <Download className="mr-2 h-4 w-4" />
-          Ekspor CSV / Excel
+          Export to Excel
         </Button>
       </div>
 
@@ -221,79 +296,10 @@ function HistoryPage() {
         </CardContent>
       </Card>
 
-      {/* Report sub-tabs */}
-      <Tabs value={view} onValueChange={(v) => setView(v as ReportView)}>
-        <div className="overflow-x-auto">
-          <TabsList className="flex-wrap">
-            <TabsTrigger value="harian">Laporan Harian</TabsTrigger>
-            <TabsTrigger value="kendaraan">Per No. Kendaraan</TabsTrigger>
-            <TabsTrigger value="product">Per Product</TabsTrigger>
-            <TabsTrigger value="customer">Per Customer</TabsTrigger>
-            <TabsTrigger value="spk">Per Nomor SPK</TabsTrigger>
-            <TabsTrigger value="daftar_product">Daftar Product</TabsTrigger>
-            <TabsTrigger value="daftar_customer">Daftar Customer/Supplier</TabsTrigger>
-            <TabsTrigger value="daftar_transporter">Daftar Transporter</TabsTrigger>
-          </TabsList>
-        </div>
-
-        <TabsContent value="harian" className="mt-4">
-          <DetailTable records={records} loading={isLoading} />
-        </TabsContent>
-        <TabsContent value="kendaraan" className="mt-4">
-          <GroupedTable
-            records={records}
-            groupBy={(r) => r.plate_number}
-            groupLabel="No. Kendaraan"
-          />
-        </TabsContent>
-        <TabsContent value="product" className="mt-4">
-          <GroupedTable
-            records={records}
-            groupBy={(r) => MATERIAL_LABELS[r.material_type]}
-            groupLabel="Product (KODEBRG)"
-          />
-        </TabsContent>
-        <TabsContent value="customer" className="mt-4">
-          <GroupedTable
-            records={records}
-            groupBy={(r) => r.vendor_name}
-            groupLabel="Customer (KODECUST)"
-          />
-        </TabsContent>
-        <TabsContent value="spk" className="mt-4">
-          <GroupedTable
-            records={records}
-            groupBy={(r) => r.do_number ?? "(Tanpa SPK)"}
-            groupLabel="Nomor SPK"
-          />
-        </TabsContent>
-        <TabsContent value="daftar_product" className="mt-4">
-          <MasterList
-            title="Daftar Product"
-            values={Array.from(new Set(records.map((r) => MATERIAL_LABELS[r.material_type]))).sort()}
-          />
-        </TabsContent>
-        <TabsContent value="daftar_customer" className="mt-4">
-          <MasterList
-            title="Daftar Customer / Supplier"
-            values={Array.from(new Set(records.map((r) => r.vendor_name))).sort()}
-          />
-        </TabsContent>
-        <TabsContent value="daftar_transporter" className="mt-4">
-          <MasterList
-            title="Daftar Transporter (KODETRSP)"
-            values={Array.from(
-              new Set(records.map((r) => r.origin_pt ?? r.vendor_name)),
-            ).sort()}
-          />
-        </TabsContent>
-      </Tabs>
-
+      <DetailTable records={records} loading={isLoading} />
     </div>
   );
 }
-
-/* ---------- Detail table (Laporan Harian) ---------- */
 
 function DetailTable({
   records,
@@ -309,26 +315,28 @@ function DetailTable({
           <Table>
             <TableHeader>
               <TableRow className="bg-secondary/50">
-                <TableHead className="pl-6">Nomor SPK</TableHead>
+                <TableHead className="pl-6">Nomor DO</TableHead>
                 <TableHead>No Polisi</TableHead>
                 <TableHead>Pemasok</TableHead>
                 <TableHead>Material</TableHead>
+                <TableHead className="text-right">Bruto</TableHead>
+                <TableHead className="text-right">Tara</TableHead>
                 <TableHead className="text-right">Netto</TableHead>
                 <TableHead>Jam Masuk</TableHead>
-                <TableHead>Jam Keluar</TableHead>
+                <TableHead className="pr-6">Jam Keluar</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading && (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-10 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={9} className="py-10 text-center text-sm text-muted-foreground">
                     Memuat...
                   </TableCell>
                 </TableRow>
               )}
               {!loading && records.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-10 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={9} className="py-10 text-center text-sm text-muted-foreground">
                     Tidak ada data yang cocok dengan filter.
                   </TableCell>
                 </TableRow>
@@ -341,109 +349,18 @@ function DetailTable({
                   <TableCell>
                     <MaterialBadge m={r.material_type} />
                   </TableCell>
+                  <TableCell className="text-right font-mono text-xs">{fmtKg(r.gross_weight)}</TableCell>
+                  <TableCell className="text-right font-mono text-xs">{fmtKg(r.tare_weight)}</TableCell>
                   <TableCell className="text-right font-mono text-sm font-bold text-primary">
                     {fmtKg(r.net_weight)}
                   </TableCell>
-                  <TableCell className="text-xs">{fmtDateTime(r.time_in)}</TableCell>
-                  <TableCell className="text-xs">{fmtDateTime(r.time_out)}</TableCell>
+                  <TableCell className="whitespace-nowrap text-xs">{fmtDateTimeShort(r.time_in)}</TableCell>
+                  <TableCell className="whitespace-nowrap pr-6 text-xs">{fmtDateTimeShort(r.time_out)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-/* ---------- Grouped summary table ---------- */
-
-function GroupedTable({
-  records,
-  groupBy,
-  groupLabel,
-}: {
-  records: WeighbridgeRecord[];
-  groupBy: (r: WeighbridgeRecord) => string;
-  groupLabel: string;
-}) {
-  const rows = useMemo(() => {
-    const map = new Map<string, { count: number; net: number }>();
-    for (const r of records) {
-      const k = groupBy(r);
-      const cur = map.get(k) ?? { count: 0, net: 0 };
-      cur.count += 1;
-      cur.net += Number(r.net_weight);
-      map.set(k, cur);
-    }
-    return Array.from(map, ([key, v]) => ({ key, ...v })).sort((a, b) => b.net - a.net);
-  }, [records, groupBy]);
-
-  return (
-    <Card className="shadow-card">
-      <CardContent className="px-0">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-secondary/50">
-                <TableHead className="pl-6">{groupLabel}</TableHead>
-                <TableHead className="text-right">Jumlah Trip</TableHead>
-                <TableHead className="pr-6 text-right">Total Netto</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={3} className="py-10 text-center text-sm text-muted-foreground">
-                    Tidak ada data.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                rows.map((r) => (
-                  <TableRow key={r.key}>
-                    <TableCell className="pl-6 font-medium">{r.key}</TableCell>
-                    <TableCell className="text-right font-mono">{r.count}</TableCell>
-                    <TableCell className="pr-6 text-right font-mono font-bold text-primary">
-                      {fmtKg(r.net)}
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-/* ---------- Master list (Daftar Product / Customer / Transporter) ---------- */
-
-function MasterList({ title, values }: { title: string; values: string[] }) {
-  return (
-    <Card className="shadow-card">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-semibold">
-          {title} ({values.length})
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {values.length === 0 ? (
-          <div className="py-6 text-center text-sm text-muted-foreground">
-            Tidak ada data pada periode terpilih.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {values.map((v) => (
-              <div
-                key={v}
-                className="rounded-md border border-border bg-card px-3 py-2 text-sm font-medium text-foreground"
-              >
-                {v}
-              </div>
-            ))}
-          </div>
-        )}
       </CardContent>
     </Card>
   );
