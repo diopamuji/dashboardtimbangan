@@ -24,12 +24,13 @@ import {
   MATERIAL_LABELS,
   MATERIAL_SHORT,
   computeVendorArrival,
+  fmtDateTimeShort,
   fmtKg,
-  fmtTime,
   kgToMT,
   type MaterialType,
   type WeighbridgeRecord,
 } from "@/lib/wb";
+
 
 export const Route = createFileRoute("/")({
   component: DashboardPage,
