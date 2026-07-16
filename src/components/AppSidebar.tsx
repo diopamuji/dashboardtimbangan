@@ -1,5 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Archive, Zap } from "lucide-react";
+import { LayoutDashboard, Archive } from "lucide-react";
+import plnLogo from "@/assets/pln-logo.png";
+
 import {
   Sidebar,
   SidebarContent,
