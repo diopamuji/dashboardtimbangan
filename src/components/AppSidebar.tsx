@@ -27,9 +27,10 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center gap-3 px-2 py-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-gold shadow-elevated">
-            <Zap className="h-5 w-5 text-sidebar-primary-foreground" strokeWidth={2.5} />
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white shadow-elevated overflow-hidden">
+            <img src={plnLogo} alt="PLN Indonesia Power" width={40} height={40} className="h-9 w-9 object-contain" />
           </div>
+
           <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
             <span className="text-sm font-bold text-sidebar-foreground">PLTU Ombilin</span>
             <span className="text-[10px] uppercase tracking-wider text-sidebar-foreground/70">
