@@ -57,8 +57,8 @@ function HistoryPage() {
       const wb = new ExcelJS.Workbook();
       const ws = wb.addWorksheet("Laporan Penimbangan");
 
-      const COLS = 11;
       const lastColLetter = "K";
+
 
       // Header kop surat
       ws.getCell("A1").value = "PLTU OMBILIN";
