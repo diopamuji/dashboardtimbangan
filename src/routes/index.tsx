@@ -107,16 +107,12 @@ function DashboardPage() {
         </div>
       </div>
 
-      {/* KPI cards (no Total Netto Today) */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      {/* KPI cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Kpi label="Truk Datang Hari Ini" value={totals.totalTrucks.toString()} icon={<Truck className="h-4 w-4" />} accent />
         <Kpi label="Pemasok Aktif" value={totals.vendors.toString()} icon={<Users className="h-4 w-4" />} />
-        <Kpi
-          label="Total Batubara"
-          value={fmtKg(totals.byMaterial.COAL)}
-          icon={<Package className="h-4 w-4" />}
-        />
       </div>
+
 
       {/* Material breakdown mini-cards (only 4 allowed materials) */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
