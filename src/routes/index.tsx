@@ -384,7 +384,8 @@ function TruckMovementsCard({
           <Table>
             <TableHeader>
               <TableRow className="bg-secondary/50">
-                <TableHead className="pl-6">No Polisi</TableHead>
+                <TableHead className="pl-6">Nomor DO</TableHead>
+                <TableHead>No Polisi</TableHead>
                 <TableHead>Pemasok</TableHead>
                 <TableHead>Material</TableHead>
                 <TableHead className="text-right">Bruto</TableHead>
@@ -399,14 +400,14 @@ function TruckMovementsCard({
             <TableBody>
               {loading && (
                 <TableRow>
-                  <TableCell colSpan={10} className="py-10 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={11} className="py-10 text-center text-sm text-muted-foreground">
                     Memuat data live...
                   </TableCell>
                 </TableRow>
               )}
               {!loading && records.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={10} className="py-10 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={11} className="py-10 text-center text-sm text-muted-foreground">
                     Belum ada pergerakan truk hari ini.
                   </TableCell>
                 </TableRow>
@@ -416,7 +417,8 @@ function TruckMovementsCard({
                 const hasNet = Number(r.net_weight) > 0 && !!r.time_out;
                 return (
                   <TableRow key={r.id}>
-                    <TableCell className="pl-6 font-mono font-semibold">{r.plate_number}</TableCell>
+                    <TableCell className="pl-6 font-mono text-xs">{r.do_number ?? "—"}</TableCell>
+                    <TableCell className="font-mono font-semibold">{r.plate_number}</TableCell>
                     <TableCell className="max-w-[180px] truncate">{r.vendor_name}</TableCell>
                     <TableCell>
                       <Badge className={MATERIAL_TONE[r.material_type]}>
@@ -428,8 +430,8 @@ function TruckMovementsCard({
                     <TableCell className="text-right font-mono text-sm font-bold text-primary">
                       {fmtKg(r.net_weight)}
                     </TableCell>
-                    <TableCell className="text-xs">{fmtTime(r.time_in)}</TableCell>
-                    <TableCell className="text-xs">{fmtTime(r.time_out)}</TableCell>
+                    <TableCell className="whitespace-nowrap text-xs">{fmtDateTimeShort(r.time_in)}</TableCell>
+                    <TableCell className="whitespace-nowrap text-xs">{fmtDateTimeShort(r.time_out)}</TableCell>
                     <TableCell>
                       {hasNet ? (
                         <Badge className="bg-emerald-600 text-white">Completed</Badge>
@@ -452,6 +454,7 @@ function TruckMovementsCard({
     </Card>
   );
 }
+
 
 function Kpi({
   label,
