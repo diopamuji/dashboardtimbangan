@@ -13,7 +13,7 @@ import {
   Cell,
   Legend,
 } from "recharts";
-import { Truck, Users, Package, Radio, Building2 } from "lucide-react";
+import { Truck, Users, Radio, Building2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,12 +24,13 @@ import {
   MATERIAL_LABELS,
   MATERIAL_SHORT,
   computeVendorArrival,
+  fmtDateTimeShort,
   fmtKg,
-  fmtTime,
   kgToMT,
   type MaterialType,
   type WeighbridgeRecord,
 } from "@/lib/wb";
+
 
 export const Route = createFileRoute("/")({
   component: DashboardPage,
@@ -106,16 +107,12 @@ function DashboardPage() {
         </div>
       </div>
 
-      {/* KPI cards (no Total Netto Today) */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      {/* KPI cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Kpi label="Truk Datang Hari Ini" value={totals.totalTrucks.toString()} icon={<Truck className="h-4 w-4" />} accent />
         <Kpi label="Pemasok Aktif" value={totals.vendors.toString()} icon={<Users className="h-4 w-4" />} />
-        <Kpi
-          label="Total Batubara"
-          value={fmtKg(totals.byMaterial.COAL)}
-          icon={<Package className="h-4 w-4" />}
-        />
       </div>
+
 
       {/* Material breakdown mini-cards (only 4 allowed materials) */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
@@ -387,7 +384,8 @@ function TruckMovementsCard({
           <Table>
             <TableHeader>
               <TableRow className="bg-secondary/50">
-                <TableHead className="pl-6">No Polisi</TableHead>
+                <TableHead className="pl-6">Nomor DO</TableHead>
+                <TableHead>No Polisi</TableHead>
                 <TableHead>Pemasok</TableHead>
                 <TableHead>Material</TableHead>
                 <TableHead className="text-right">Bruto</TableHead>
@@ -402,14 +400,14 @@ function TruckMovementsCard({
             <TableBody>
               {loading && (
                 <TableRow>
-                  <TableCell colSpan={10} className="py-10 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={11} className="py-10 text-center text-sm text-muted-foreground">
                     Memuat data live...
                   </TableCell>
                 </TableRow>
               )}
               {!loading && records.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={10} className="py-10 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={11} className="py-10 text-center text-sm text-muted-foreground">
                     Belum ada pergerakan truk hari ini.
                   </TableCell>
                 </TableRow>
@@ -419,7 +417,8 @@ function TruckMovementsCard({
                 const hasNet = Number(r.net_weight) > 0 && !!r.time_out;
                 return (
                   <TableRow key={r.id}>
-                    <TableCell className="pl-6 font-mono font-semibold">{r.plate_number}</TableCell>
+                    <TableCell className="pl-6 font-mono text-xs">{r.do_number ?? "—"}</TableCell>
+                    <TableCell className="font-mono font-semibold">{r.plate_number}</TableCell>
                     <TableCell className="max-w-[180px] truncate">{r.vendor_name}</TableCell>
                     <TableCell>
                       <Badge className={MATERIAL_TONE[r.material_type]}>
@@ -431,8 +430,8 @@ function TruckMovementsCard({
                     <TableCell className="text-right font-mono text-sm font-bold text-primary">
                       {fmtKg(r.net_weight)}
                     </TableCell>
-                    <TableCell className="text-xs">{fmtTime(r.time_in)}</TableCell>
-                    <TableCell className="text-xs">{fmtTime(r.time_out)}</TableCell>
+                    <TableCell className="whitespace-nowrap text-xs">{fmtDateTimeShort(r.time_in)}</TableCell>
+                    <TableCell className="whitespace-nowrap text-xs">{fmtDateTimeShort(r.time_out)}</TableCell>
                     <TableCell>
                       {hasNet ? (
                         <Badge className="bg-emerald-600 text-white">Completed</Badge>
@@ -455,6 +454,7 @@ function TruckMovementsCard({
     </Card>
   );
 }
+
 
 function Kpi({
   label,
