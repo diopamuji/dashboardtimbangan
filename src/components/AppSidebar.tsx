@@ -17,7 +17,7 @@ import {
 
 const items = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Data Historis / Arsip Digital", url: "/history", icon: Archive },
+  { title: "Data Historis", url: "/history", icon: Archive },
 ];
 
 export function AppSidebar() {
