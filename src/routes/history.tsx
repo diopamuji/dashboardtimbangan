@@ -294,6 +294,27 @@ function HistoryPage() {
               />
             </div>
           </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Load ID</Label>
+            <Select value={filters.load_id || "ALL"} onValueChange={(v) => setFilters((f) => ({ ...f, load_id: v }))}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">Semua load</SelectItem>
+                {loads.map((l) => (<SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Status COA/COW</Label>
+            <Select value={filters.cert_status || "ALL"} onValueChange={(v) => setFilters((f) => ({ ...f, cert_status: v as any }))}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">Semua</SelectItem>
+                <SelectItem value="COMPLETE">Lengkap</SelectItem>
+                <SelectItem value="MISSING">Belum Upload</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <div className="flex items-end">
             <Button variant="outline" onClick={resetFilters} className="w-full">
               <X className="mr-1 h-3.5 w-3.5" />
@@ -308,6 +329,7 @@ function HistoryPage() {
   );
 }
 
+
 function DetailTable({
   records,
   loading,
@@ -315,6 +337,7 @@ function DetailTable({
   records: WeighbridgeRecord[];
   loading: boolean;
 }) {
+  const [openId, setOpenId] = useState<string | null>(null);
   return (
     <Card className="shadow-card">
       <CardContent className="px-0">
@@ -330,45 +353,42 @@ function DetailTable({
                 <TableHead className="text-right">Tara</TableHead>
                 <TableHead className="text-right">Netto</TableHead>
                 <TableHead>Jam Masuk</TableHead>
-                <TableHead className="pr-6">Jam Keluar</TableHead>
+                <TableHead>Jam Keluar</TableHead>
+                <TableHead className="pr-6">Arsip DO</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading && (
-                <TableRow>
-                  <TableCell colSpan={9} className="py-10 text-center text-sm text-muted-foreground">
-                    Memuat...
-                  </TableCell>
-                </TableRow>
+                <TableRow><TableCell colSpan={10} className="py-10 text-center text-sm text-muted-foreground">Memuat...</TableCell></TableRow>
               )}
               {!loading && records.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={9} className="py-10 text-center text-sm text-muted-foreground">
-                    Tidak ada data yang cocok dengan filter.
-                  </TableCell>
-                </TableRow>
+                <TableRow><TableCell colSpan={10} className="py-10 text-center text-sm text-muted-foreground">Tidak ada data yang cocok dengan filter.</TableCell></TableRow>
               )}
               {records.map((r) => (
-                <TableRow key={r.id}>
+                <TableRow key={r.id} className="cursor-pointer hover:bg-secondary/40" onClick={() => setOpenId(r.id)}>
                   <TableCell className="pl-6 font-mono text-xs">{r.do_number ?? "—"}</TableCell>
                   <TableCell className="font-mono font-semibold">{r.plate_number}</TableCell>
                   <TableCell className="max-w-[200px] truncate">{r.vendor_name}</TableCell>
-                  <TableCell>
-                    <MaterialBadge m={r.material_type} />
-                  </TableCell>
+                  <TableCell><MaterialBadge m={r.material_type} /></TableCell>
                   <TableCell className="text-right font-mono text-xs">{fmtKg(r.gross_weight)}</TableCell>
                   <TableCell className="text-right font-mono text-xs">{fmtKg(r.tare_weight)}</TableCell>
-                  <TableCell className="text-right font-mono text-sm font-bold text-primary">
-                    {fmtKg(r.net_weight)}
-                  </TableCell>
+                  <TableCell className="text-right font-mono text-sm font-bold text-primary">{fmtKg(r.net_weight)}</TableCell>
                   <TableCell className="whitespace-nowrap text-xs">{fmtDateTimeShort(r.time_in)}</TableCell>
-                  <TableCell className="whitespace-nowrap pr-6 text-xs">{fmtDateTimeShort(r.time_out)}</TableCell>
+                  <TableCell className="whitespace-nowrap text-xs">{fmtDateTimeShort(r.time_out)}</TableCell>
+                  <TableCell className="pr-6" onClick={(e) => e.stopPropagation()}>
+                    {r.do_file_url ? (
+                      <FilePreviewButton bucket="do-scans" path={r.do_file_url} label="Lihat" />
+                    ) : (
+                      <span className="text-[11px] text-muted-foreground">Pending</span>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
       </CardContent>
+      <TraceabilityDialog recordId={openId} open={!!openId} onOpenChange={(v) => !v && setOpenId(null)} />
     </Card>
   );
 }
@@ -385,3 +405,4 @@ const MATERIAL_TONE: Record<MaterialType, string> = {
 function MaterialBadge({ m }: { m: MaterialType }) {
   return <Badge className={MATERIAL_TONE[m]}>{MATERIAL_SHORT[m]}</Badge>;
 }
+
