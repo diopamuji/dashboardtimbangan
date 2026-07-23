@@ -13,9 +13,10 @@ import {
   Cell,
   Legend,
 } from "recharts";
-import { Truck, Users, Radio, Building2 } from "lucide-react";
+import { Truck, Users, Radio, Building2, Paperclip, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useMonthRecords, useTodayRecords, useYearRecords } from "@/lib/wb-queries";
@@ -30,6 +31,10 @@ import {
   type MaterialType,
   type WeighbridgeRecord,
 } from "@/lib/wb";
+import { AttachDoDialog } from "@/components/AttachDoDialog";
+import { FilePreviewButton } from "@/components/FilePreview";
+
+
 
 
 export const Route = createFileRoute("/")({
@@ -370,6 +375,7 @@ function TruckMovementsCard({
   loading: boolean;
 }) {
   const arrival = useMemo(() => computeVendorArrival(records), [records]);
+  const [attachTarget, setAttachTarget] = useState<WeighbridgeRecord | null>(null);
 
   return (
     <Card className="shadow-card">
@@ -394,23 +400,16 @@ function TruckMovementsCard({
                 <TableHead>Jam Masuk</TableHead>
                 <TableHead>Jam Keluar</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="pr-6">Urutan Kedatangan</TableHead>
+                <TableHead>Urutan</TableHead>
+                <TableHead className="pr-6">Arsip DO</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading && (
-                <TableRow>
-                  <TableCell colSpan={11} className="py-10 text-center text-sm text-muted-foreground">
-                    Memuat data live...
-                  </TableCell>
-                </TableRow>
+                <TableRow><TableCell colSpan={12} className="py-10 text-center text-sm text-muted-foreground">Memuat data live...</TableCell></TableRow>
               )}
               {!loading && records.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={11} className="py-10 text-center text-sm text-muted-foreground">
-                    Belum ada pergerakan truk hari ini.
-                  </TableCell>
-                </TableRow>
+                <TableRow><TableCell colSpan={12} className="py-10 text-center text-sm text-muted-foreground">Belum ada pergerakan truk hari ini.</TableCell></TableRow>
               )}
               {records.map((r) => {
                 const ord = arrival.get(r.id);
@@ -421,15 +420,11 @@ function TruckMovementsCard({
                     <TableCell className="font-mono font-semibold">{r.plate_number}</TableCell>
                     <TableCell className="max-w-[180px] truncate">{r.vendor_name}</TableCell>
                     <TableCell>
-                      <Badge className={MATERIAL_TONE[r.material_type]}>
-                        {MATERIAL_SHORT[r.material_type]}
-                      </Badge>
+                      <Badge className={MATERIAL_TONE[r.material_type]}>{MATERIAL_SHORT[r.material_type]}</Badge>
                     </TableCell>
                     <TableCell className="text-right font-mono text-xs">{fmtKg(r.gross_weight)}</TableCell>
                     <TableCell className="text-right font-mono text-xs">{fmtKg(r.tare_weight)}</TableCell>
-                    <TableCell className="text-right font-mono text-sm font-bold text-primary">
-                      {fmtKg(r.net_weight)}
-                    </TableCell>
+                    <TableCell className="text-right font-mono text-sm font-bold text-primary">{fmtKg(r.net_weight)}</TableCell>
                     <TableCell className="whitespace-nowrap text-xs">{fmtDateTimeShort(r.time_in)}</TableCell>
                     <TableCell className="whitespace-nowrap text-xs">{fmtDateTimeShort(r.time_out)}</TableCell>
                     <TableCell>
@@ -439,10 +434,22 @@ function TruckMovementsCard({
                         <Badge className="bg-amber-500 text-white">In Progress</Badge>
                       )}
                     </TableCell>
-                    <TableCell className="pr-6">
+                    <TableCell>
                       <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary px-2 py-1 text-[11px] font-semibold text-foreground">
                         Truk #{ord ?? "-"}
                       </span>
+                    </TableCell>
+                    <TableCell className="pr-6">
+                      <div className="flex items-center gap-1">
+                        {r.do_file_url ? (
+                          <FilePreviewButton bucket="do-scans" path={r.do_file_url} label="Uploaded" />
+                        ) : (
+                          <Badge variant="outline" className="text-[10px]"><FileText className="mr-1 h-3 w-3" />Pending</Badge>
+                        )}
+                        <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => setAttachTarget(r)}>
+                          <Paperclip className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
@@ -451,9 +458,11 @@ function TruckMovementsCard({
           </Table>
         </div>
       </CardContent>
+      <AttachDoDialog record={attachTarget} open={!!attachTarget} onOpenChange={(v) => !v && setAttachTarget(null)} />
     </Card>
   );
 }
+
 
 
 function Kpi({
