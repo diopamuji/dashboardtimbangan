@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useHistory, useVendors, type HistoryFilters } from "@/lib/wb-queries";
+import { useHistory, useLoads, useVendors, type HistoryFilters } from "@/lib/wb-queries";
 import {
   ALL_MATERIALS,
   MATERIAL_LABELS,
@@ -25,6 +25,9 @@ import {
   type MaterialType,
   type WeighbridgeRecord,
 } from "@/lib/wb";
+import { TraceabilityDialog } from "@/components/TraceabilityDialog";
+import { FilePreviewButton } from "@/components/FilePreview";
+
 
 export const Route = createFileRoute("/history")({
   component: HistoryPage,
@@ -42,10 +45,14 @@ function HistoryPage() {
     vendor: "",
     plate: "",
     spk: "",
+    load_id: "ALL",
+    cert_status: "ALL",
   });
 
   const { data: records = [], isLoading } = useHistory(filters);
   const { data: vendors = [] } = useVendors();
+  const { data: loads = [] } = useLoads();
+
 
   async function exportExcel() {
     if (records.length === 0) {
@@ -185,8 +192,9 @@ function HistoryPage() {
 
 
   function resetFilters() {
-    setFilters({ from: "", to: todayStr(), material: "ALL", vendor: "", plate: "", spk: "" });
+    setFilters({ from: "", to: todayStr(), material: "ALL", vendor: "", plate: "", spk: "", load_id: "ALL", cert_status: "ALL" });
   }
+
 
   return (
     <div className="space-y-6 p-4 md:p-6">
