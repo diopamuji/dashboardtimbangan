@@ -179,7 +179,11 @@ export const attachDoToRecord = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => attachDoSchema.parse(d))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const patch: Record<string, unknown> = {};
+    const patch: {
+      do_file_url?: string;
+      do_number?: string;
+      load_id?: string | null;
+    } = {};
     if (data.do_file_path !== undefined) patch.do_file_url = data.do_file_path;
     if (data.do_number !== undefined) patch.do_number = data.do_number;
     if (data.load_id !== undefined) patch.load_id = data.load_id;
@@ -187,6 +191,7 @@ export const attachDoToRecord = createServerFn({ method: "POST" })
       .from("weighbridge_records")
       .update(patch)
       .eq("id", data.record_id);
+
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -209,20 +214,28 @@ export const upsertLoadCertificate = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: existing } = await supabaseAdmin
       .from("load_certificates")
-      .select("id, coa_file_url, cow_file_url")
+      .select("*")
       .eq("load_id", data.load_id)
       .maybeSingle();
-    const payload: Record<string, unknown> = {
+    const payload: {
+      load_id: string;
+      coa_file_url: string | null;
+      cow_file_url: string | null;
+      calorific_value: string | null;
+      moisture: string | null;
+      total_weight_verified: string | null;
+      notes: string | null;
+    } = {
       load_id: data.load_id,
+      coa_file_url: existing?.coa_file_url ?? null,
+      cow_file_url: existing?.cow_file_url ?? null,
       calorific_value: data.calorific_value ?? existing?.calorific_value ?? null,
-      moisture: data.moisture ?? null,
-      total_weight_verified: data.total_weight_verified ?? null,
-      notes: data.notes ?? null,
+      moisture: data.moisture ?? existing?.moisture ?? null,
+      total_weight_verified: data.total_weight_verified ?? existing?.total_weight_verified ?? null,
+      notes: data.notes ?? existing?.notes ?? null,
     };
     if (data.coa_file_path !== undefined) payload.coa_file_url = data.coa_file_path;
-    else if (existing) payload.coa_file_url = existing.coa_file_url;
     if (data.cow_file_path !== undefined) payload.cow_file_url = data.cow_file_path;
-    else if (existing) payload.cow_file_url = existing.cow_file_url;
 
     if (existing) {
       const { error } = await supabaseAdmin
@@ -234,6 +247,7 @@ export const upsertLoadCertificate = createServerFn({ method: "POST" })
       const { error } = await supabaseAdmin.from("load_certificates").insert(payload);
       if (error) throw new Error(error.message);
     }
+
     return { ok: true };
   });
 
