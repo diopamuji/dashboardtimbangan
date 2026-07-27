@@ -15,39 +15,7 @@ export interface WeighbridgeRecord {
   origin_pt: string | null;
   driver_name: string | null;
   created_at: string;
-  do_file_url: string | null;
-  load_id: string | null;
 }
-
-export interface Load {
-  id: string;
-  name: string;
-  material_type: MaterialType;
-  notes: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface LoadCertificate {
-  id: string;
-  load_id: string;
-  coa_file_url: string | null;
-  cow_file_url: string | null;
-  calorific_value: string | null;
-  moisture: string | null;
-  total_weight_verified: string | null;
-  notes: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface LoadSummary {
-  load: Load;
-  truck_count: number;
-  total_net_kg: number;
-  certificate: LoadCertificate | null;
-}
-
 
 export const MATERIAL_LABELS: Record<MaterialType, string> = {
   COAL: "Batubara",

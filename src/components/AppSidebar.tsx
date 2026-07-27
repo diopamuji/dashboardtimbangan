@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Archive, Award } from "lucide-react";
+import { LayoutDashboard, Archive } from "lucide-react";
 import plnLogo from "@/assets/pln-logo.png";
 
 import {
@@ -18,9 +18,7 @@ import {
 const items = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Data Historis", url: "/history", icon: Archive },
-  { title: "Sertifikat COA & COW", url: "/certificates", icon: Award },
 ];
-
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
