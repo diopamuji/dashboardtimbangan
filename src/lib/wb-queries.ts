@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import type { WeighbridgeRecord } from "./wb";
 import { monthRange, todayRange, yearRange } from "./wb";
-import { fetchVendorNames, fetchWeighbridgeRecords } from "./wb.functions";
+import { fetchLotNumbers, fetchVendorNames, fetchWeighbridgeRecords } from "./wb.functions";
 
 const REFETCH_MS = 10_000;
 
@@ -17,6 +17,20 @@ export function useTodayRecords() {
     },
     refetchInterval: REFETCH_MS,
     refetchOnWindowFocus: true,
+  });
+}
+
+export function useDayRecords(day: string) {
+  const fetchFn = useServerFn(fetchWeighbridgeRecords);
+  return useQuery({
+    queryKey: ["wb", "day", day],
+    queryFn: async () => {
+      const rows = await fetchFn({
+        data: { from: `${day}T00:00:00`, to: `${day}T23:59:59`, limit: 5000, order: "asc" },
+      });
+      return rows as WeighbridgeRecord[];
+    },
+    refetchInterval: 30_000,
   });
 }
 
@@ -53,6 +67,7 @@ export interface HistoryFilters {
   vendor?: string;
   plate?: string;
   spk?: string;
+  lot?: string;
 }
 
 export function useHistory(filters: HistoryFilters) {
@@ -68,6 +83,7 @@ export function useHistory(filters: HistoryFilters) {
           vendor: filters.vendor,
           plate: filters.plate,
           spk: filters.spk,
+          lot: filters.lot,
           limit: 2000,
         },
       });
@@ -81,6 +97,17 @@ export function useVendors() {
   const fetchFn = useServerFn(fetchVendorNames);
   return useQuery({
     queryKey: ["wb", "vendors"],
+    queryFn: async () => {
+      return (await fetchFn()) as string[];
+    },
+    staleTime: 60_000,
+  });
+}
+
+export function useLots() {
+  const fetchFn = useServerFn(fetchLotNumbers);
+  return useQuery({
+    queryKey: ["wb", "lots"],
     queryFn: async () => {
       return (await fetchFn()) as string[];
     },

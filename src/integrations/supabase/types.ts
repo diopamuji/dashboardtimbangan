@@ -14,56 +14,150 @@ export type Database = {
   }
   public: {
     Tables: {
+      load_certificates: {
+        Row: {
+          calorific_value: string | null
+          coa_file_url: string | null
+          cow_file_url: string | null
+          created_at: string
+          id: string
+          load_id: string
+          moisture: string | null
+          notes: string | null
+          total_weight_verified: string | null
+          updated_at: string
+        }
+        Insert: {
+          calorific_value?: string | null
+          coa_file_url?: string | null
+          cow_file_url?: string | null
+          created_at?: string
+          id?: string
+          load_id: string
+          moisture?: string | null
+          notes?: string | null
+          total_weight_verified?: string | null
+          updated_at?: string
+        }
+        Update: {
+          calorific_value?: string | null
+          coa_file_url?: string | null
+          cow_file_url?: string | null
+          created_at?: string
+          id?: string
+          load_id?: string
+          moisture?: string | null
+          notes?: string | null
+          total_weight_verified?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "load_certificates_load_id_fkey"
+            columns: ["load_id"]
+            isOneToOne: true
+            referencedRelation: "loads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loads: {
+        Row: {
+          created_at: string
+          id: string
+          material_type: string
+          name: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          material_type: string
+          name: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          material_type?: string
+          name?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       weighbridge_records: {
         Row: {
           created_at: string
+          do_file_url: string | null
           do_number: string | null
           driver_name: string | null
           gross_weight: number
           id: string
+          load_id: string | null
+          lot_number: string | null
           material_type: string
           net_weight: number
           origin_pt: string | null
           plate_number: string
           status: string
           tare_weight: number
+          ticket_number: string | null
           time_in: string | null
           time_out: string | null
           vendor_name: string
         }
         Insert: {
           created_at?: string
+          do_file_url?: string | null
           do_number?: string | null
           driver_name?: string | null
           gross_weight?: number
           id?: string
+          load_id?: string | null
+          lot_number?: string | null
           material_type: string
           net_weight?: number
           origin_pt?: string | null
           plate_number: string
           status?: string
           tare_weight?: number
+          ticket_number?: string | null
           time_in?: string | null
           time_out?: string | null
           vendor_name: string
         }
         Update: {
           created_at?: string
+          do_file_url?: string | null
           do_number?: string | null
           driver_name?: string | null
           gross_weight?: number
           id?: string
+          load_id?: string | null
+          lot_number?: string | null
           material_type?: string
           net_weight?: number
           origin_pt?: string | null
           plate_number?: string
           status?: string
           tare_weight?: number
+          ticket_number?: string | null
           time_in?: string | null
           time_out?: string | null
           vendor_name?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "weighbridge_records_load_id_fkey"
+            columns: ["load_id"]
+            isOneToOne: false
+            referencedRelation: "loads"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
