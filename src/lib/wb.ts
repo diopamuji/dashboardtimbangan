@@ -3,6 +3,9 @@ export type MaterialType = "COAL" | "REJECT_COAL" | "BIOMASS" | "FABA" | "CHEMIC
 export interface WeighbridgeRecord {
   id: string;
   do_number: string | null;
+  ticket_number: string | null;
+  lot_number: string | null;
+  do_file_url: string | null;
   plate_number: string;
   vendor_name: string;
   material_type: MaterialType;
@@ -16,6 +19,7 @@ export interface WeighbridgeRecord {
   driver_name: string | null;
   created_at: string;
 }
+
 
 export const MATERIAL_LABELS: Record<MaterialType, string> = {
   COAL: "Batubara",
