@@ -97,12 +97,14 @@ export type Database = {
           gross_weight: number
           id: string
           load_id: string | null
+          lot_number: string | null
           material_type: string
           net_weight: number
           origin_pt: string | null
           plate_number: string
           status: string
           tare_weight: number
+          ticket_number: string | null
           time_in: string | null
           time_out: string | null
           vendor_name: string
@@ -115,12 +117,14 @@ export type Database = {
           gross_weight?: number
           id?: string
           load_id?: string | null
+          lot_number?: string | null
           material_type: string
           net_weight?: number
           origin_pt?: string | null
           plate_number: string
           status?: string
           tare_weight?: number
+          ticket_number?: string | null
           time_in?: string | null
           time_out?: string | null
           vendor_name: string
@@ -133,12 +137,14 @@ export type Database = {
           gross_weight?: number
           id?: string
           load_id?: string | null
+          lot_number?: string | null
           material_type?: string
           net_weight?: number
           origin_pt?: string | null
           plate_number?: string
           status?: string
           tare_weight?: number
+          ticket_number?: string | null
           time_in?: string | null
           time_out?: string | null
           vendor_name?: string
