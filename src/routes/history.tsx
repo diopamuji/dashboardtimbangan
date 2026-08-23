@@ -348,6 +348,21 @@ function HistoryPage() {
               />
             </div>
           </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Lot ke-</Label>
+            <Select
+              value={filters.lot || "ALL"}
+              onValueChange={(v) => setFilters((f) => ({ ...f, lot: v }))}
+            >
+              <SelectTrigger><SelectValue placeholder="Semua Lot" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">Semua Lot</SelectItem>
+                {lots.map((l) => (
+                  <SelectItem key={l} value={l}>{l}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="flex items-end">
             <Button variant="outline" onClick={resetFilters} className="w-full">
               <X className="mr-1 h-3.5 w-3.5" />
