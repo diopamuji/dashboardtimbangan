@@ -385,6 +385,7 @@ function TruckMovementsCard({
             <TableHeader>
               <TableRow className="bg-secondary/50">
                 <TableHead className="pl-6">Nomor DO</TableHead>
+                <TableHead>Lot ke-</TableHead>
                 <TableHead>No Polisi</TableHead>
                 <TableHead>Pemasok</TableHead>
                 <TableHead>Material</TableHead>
@@ -394,64 +395,82 @@ function TruckMovementsCard({
                 <TableHead>Jam Masuk</TableHead>
                 <TableHead>Jam Keluar</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="pr-6">Urutan Kedatangan</TableHead>
+                <TableHead>Arsip DO</TableHead>
+                <TableHead>Urutan Kedatangan</TableHead>
+                <TableHead className="pr-6">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading && (
                 <TableRow>
-                  <TableCell colSpan={11} className="py-10 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={14} className="py-10 text-center text-sm text-muted-foreground">
                     Memuat data live...
                   </TableCell>
                 </TableRow>
               )}
               {!loading && records.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={11} className="py-10 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={14} className="py-10 text-center text-sm text-muted-foreground">
                     Belum ada pergerakan truk hari ini.
                   </TableCell>
                 </TableRow>
               )}
-              {records.map((r) => {
-                const ord = arrival.get(r.id);
-                const hasNet = Number(r.net_weight) > 0 && !!r.time_out;
-                return (
-                  <TableRow key={r.id}>
-                    <TableCell className="pl-6 font-mono text-xs">{r.do_number ?? "—"}</TableCell>
-                    <TableCell className="font-mono font-semibold">{r.plate_number}</TableCell>
-                    <TableCell className="max-w-[180px] truncate">{r.vendor_name}</TableCell>
-                    <TableCell>
-                      <Badge className={MATERIAL_TONE[r.material_type]}>
-                        {MATERIAL_SHORT[r.material_type]}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right font-mono text-xs">{fmtKg(r.gross_weight)}</TableCell>
-                    <TableCell className="text-right font-mono text-xs">{fmtKg(r.tare_weight)}</TableCell>
-                    <TableCell className="text-right font-mono text-sm font-bold text-primary">
-                      {fmtKg(r.net_weight)}
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap text-xs">{fmtDateTimeShort(r.time_in)}</TableCell>
-                    <TableCell className="whitespace-nowrap text-xs">{fmtDateTimeShort(r.time_out)}</TableCell>
-                    <TableCell>
-                      {hasNet ? (
-                        <Badge className="bg-emerald-600 text-white">Completed</Badge>
-                      ) : (
-                        <Badge className="bg-amber-500 text-white">In Progress</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="pr-6">
-                      <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary px-2 py-1 text-[11px] font-semibold text-foreground">
-                        Truk #{ord ?? "-"}
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+              {records.map((r) => (
+                <TruckRow key={r.id} r={r} ord={arrival.get(r.id)} />
+              ))}
             </TableBody>
           </Table>
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function TruckRow({ r, ord }: { r: WeighbridgeRecord; ord?: number }) {
+  const [open, setOpen] = useState(false);
+  const hasNet = Number(r.net_weight) > 0 && !!r.time_out;
+
+  return (
+    <TableRow>
+      <TableCell className="pl-6 font-mono text-xs">{r.do_number ?? "—"}</TableCell>
+      <TableCell className="whitespace-nowrap text-xs font-semibold">
+        {r.lot_number ?? <span className="text-muted-foreground">—</span>}
+      </TableCell>
+      <TableCell className="font-mono font-semibold">{r.plate_number}</TableCell>
+      <TableCell className="max-w-[180px] truncate">{r.vendor_name}</TableCell>
+      <TableCell>
+        <Badge className={MATERIAL_TONE[r.material_type]}>{MATERIAL_SHORT[r.material_type]}</Badge>
+      </TableCell>
+      <TableCell className="text-right font-mono text-xs">{fmtKg(r.gross_weight)}</TableCell>
+      <TableCell className="text-right font-mono text-xs">{fmtKg(r.tare_weight)}</TableCell>
+      <TableCell className="text-right font-mono text-sm font-bold text-primary">
+        {fmtKg(r.net_weight)}
+      </TableCell>
+      <TableCell className="whitespace-nowrap text-xs">{fmtDateTimeShort(r.time_in)}</TableCell>
+      <TableCell className="whitespace-nowrap text-xs">{fmtDateTimeShort(r.time_out)}</TableCell>
+      <TableCell>
+        {hasNet ? (
+          <Badge className="bg-emerald-600 text-white">Completed</Badge>
+        ) : (
+          <Badge className="bg-amber-500 text-white">In Progress</Badge>
+        )}
+      </TableCell>
+      <TableCell>
+        <DoArchiveCell record={r} />
+      </TableCell>
+      <TableCell>
+        <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary px-2 py-1 text-[11px] font-semibold text-foreground">
+          Truk #{ord ?? "-"}
+        </span>
+      </TableCell>
+      <TableCell className="pr-6">
+        <Button variant="outline" size="sm" className="h-7 gap-1 text-[11px]" onClick={() => setOpen(true)}>
+          <ClipboardEdit className="h-3.5 w-3.5" />
+          Operasi Timbangan
+        </Button>
+        {open && <OperasiTimbanganDialog record={r} open={open} onOpenChange={setOpen} />}
+      </TableCell>
+    </TableRow>
   );
 }
 
