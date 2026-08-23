@@ -241,7 +241,7 @@ function HistoryPage() {
 
 
   function resetFilters() {
-    setFilters({ from: "", to: todayStr(), material: "ALL", vendor: "", plate: "", spk: "" });
+    setFilters({ from: "", to: todayStr(), material: "ALL", vendor: "", plate: "", spk: "", lot: "ALL" });
   }
 
   return (
