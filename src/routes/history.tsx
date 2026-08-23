@@ -277,7 +277,7 @@ function HistoryPage() {
             Filter Pencarian
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-4 lg:grid-cols-7">
+        <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-4 lg:grid-cols-8">
           <div className="space-y-1.5">
             <Label className="text-xs">Dari Tanggal</Label>
             <Input
