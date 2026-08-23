@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Download, FileSearch, Filter, Search, X } from "lucide-react";
+import { Download, FileSearch, Files, Filter, Loader2, Search, X } from "lucide-react";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +16,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useHistory, useVendors, type HistoryFilters } from "@/lib/wb-queries";
+import { DoArchiveCell } from "@/components/DoArchive";
+import { resolveLotDoUrls } from "@/lib/wb.functions";
+import { useHistory, useLots, useVendors, type HistoryFilters } from "@/lib/wb-queries";
 import {
   ALL_MATERIALS,
   MATERIAL_LABELS,
