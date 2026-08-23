@@ -392,6 +392,8 @@ function DetailTable({
             <TableHeader>
               <TableRow className="bg-secondary/50">
                 <TableHead className="pl-6">Nomor DO</TableHead>
+                <TableHead>Nomor Tiket</TableHead>
+                <TableHead>Lot ke-</TableHead>
                 <TableHead>No Polisi</TableHead>
                 <TableHead>Pemasok</TableHead>
                 <TableHead>Material</TableHead>
@@ -399,20 +401,21 @@ function DetailTable({
                 <TableHead className="text-right">Tara</TableHead>
                 <TableHead className="text-right">Netto</TableHead>
                 <TableHead>Jam Masuk</TableHead>
-                <TableHead className="pr-6">Jam Keluar</TableHead>
+                <TableHead>Jam Keluar</TableHead>
+                <TableHead className="pr-6">Arsip DO</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading && (
                 <TableRow>
-                  <TableCell colSpan={9} className="py-10 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={12} className="py-10 text-center text-sm text-muted-foreground">
                     Memuat...
                   </TableCell>
                 </TableRow>
               )}
               {!loading && records.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={9} className="py-10 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={12} className="py-10 text-center text-sm text-muted-foreground">
                     Tidak ada data yang cocok dengan filter.
                   </TableCell>
                 </TableRow>
@@ -420,6 +423,8 @@ function DetailTable({
               {records.map((r) => (
                 <TableRow key={r.id}>
                   <TableCell className="pl-6 font-mono text-xs">{r.do_number ?? "—"}</TableCell>
+                  <TableCell className="font-mono text-xs">{r.ticket_number ?? "—"}</TableCell>
+                  <TableCell className="whitespace-nowrap text-xs font-semibold">{r.lot_number ?? "—"}</TableCell>
                   <TableCell className="font-mono font-semibold">{r.plate_number}</TableCell>
                   <TableCell className="max-w-[200px] truncate">{r.vendor_name}</TableCell>
                   <TableCell>
@@ -431,7 +436,10 @@ function DetailTable({
                     {fmtKg(r.net_weight)}
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-xs">{fmtDateTimeShort(r.time_in)}</TableCell>
-                  <TableCell className="whitespace-nowrap pr-6 text-xs">{fmtDateTimeShort(r.time_out)}</TableCell>
+                  <TableCell className="whitespace-nowrap text-xs">{fmtDateTimeShort(r.time_out)}</TableCell>
+                  <TableCell className="pr-6">
+                    <DoArchiveCell record={r} />
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
