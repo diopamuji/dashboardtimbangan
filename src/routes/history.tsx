@@ -45,10 +45,63 @@ function HistoryPage() {
     vendor: "",
     plate: "",
     spk: "",
+    lot: "ALL",
   });
+  const [merging, setMerging] = useState(false);
 
   const { data: records = [], isLoading } = useHistory(filters);
   const { data: vendors = [] } = useVendors();
+  const { data: lots = [] } = useLots();
+  const resolveLot = useServerFn(resolveLotDoUrls);
+
+  async function downloadCombinedDo() {
+    const lot = filters.lot;
+    if (!lot || lot === "ALL") {
+      toast.error('Pilih "Lot ke-" terlebih dahulu');
+      return;
+    }
+    setMerging(true);
+    try {
+      const files = (await resolveLot({ data: { lot } })) as { id: string; label: string; url: string }[];
+      if (files.length === 0) {
+        toast.error(`Belum ada arsip DO pada ${lot}`);
+        return;
+      }
+      const { PDFDocument } = await import("pdf-lib");
+      const merged = await PDFDocument.create();
+      for (const f of files) {
+        const bytes = new Uint8Array(await (await fetch(f.url)).arrayBuffer());
+        const isPdf = bytes[0] === 0x25 && bytes[1] === 0x50;
+        if (isPdf) {
+          const src = await PDFDocument.load(bytes);
+          const pages = await merged.copyPages(src, src.getPageIndices());
+          pages.forEach((p) => merged.addPage(p));
+        } else {
+          const isPng = bytes[0] === 0x89 && bytes[1] === 0x50;
+          const img = isPng ? await merged.embedPng(bytes) : await merged.embedJpg(bytes);
+          const page = merged.addPage([595.28, 841.89]);
+          const scale = Math.min((595.28 - 40) / img.width, (841.89 - 40) / img.height);
+          const w = img.width * scale;
+          const h = img.height * scale;
+          page.drawImage(img, { x: (595.28 - w) / 2, y: (841.89 - h) / 2, width: w, height: h });
+        }
+      }
+      const out = await merged.save();
+      const blob = new Blob([out as BlobPart], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `paket-do-${lot.replace(/\s+/g, "-").toLowerCase()}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`${files.length} dokumen DO digabung untuk ${lot}`);
+    } catch (err) {
+      console.error(err);
+      toast.error("Gagal menggabungkan dokumen DO");
+    } finally {
+      setMerging(false);
+    }
+  }
 
   async function exportExcel() {
     if (records.length === 0) {
