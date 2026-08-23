@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Archive } from "lucide-react";
+import { LayoutDashboard, Archive, ClipboardList } from "lucide-react";
 import plnLogo from "@/assets/pln-logo.png";
 
 import {
@@ -17,6 +17,7 @@ import {
 
 const items = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
+  { title: "Laporan Penerimaan Harian", url: "/laporan-harian", icon: ClipboardList },
   { title: "Data Historis", url: "/history", icon: Archive },
 ];
 

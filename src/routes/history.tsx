@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Download, FileSearch, Filter, Search, X } from "lucide-react";
+import { Download, FileSearch, Files, Filter, Loader2, Search, X } from "lucide-react";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +16,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useHistory, useVendors, type HistoryFilters } from "@/lib/wb-queries";
+import { DoArchiveCell } from "@/components/DoArchive";
+import { resolveLotDoUrls } from "@/lib/wb.functions";
+import { useHistory, useLots, useVendors, type HistoryFilters } from "@/lib/wb-queries";
 import {
   ALL_MATERIALS,
   MATERIAL_LABELS,
@@ -42,10 +45,63 @@ function HistoryPage() {
     vendor: "",
     plate: "",
     spk: "",
+    lot: "ALL",
   });
+  const [merging, setMerging] = useState(false);
 
   const { data: records = [], isLoading } = useHistory(filters);
   const { data: vendors = [] } = useVendors();
+  const { data: lots = [] } = useLots();
+  const resolveLot = useServerFn(resolveLotDoUrls);
+
+  async function downloadCombinedDo() {
+    const lot = filters.lot;
+    if (!lot || lot === "ALL") {
+      toast.error('Pilih "Lot ke-" terlebih dahulu');
+      return;
+    }
+    setMerging(true);
+    try {
+      const files = (await resolveLot({ data: { lot } })) as { id: string; label: string; url: string }[];
+      if (files.length === 0) {
+        toast.error(`Belum ada arsip DO pada ${lot}`);
+        return;
+      }
+      const { PDFDocument } = await import("pdf-lib");
+      const merged = await PDFDocument.create();
+      for (const f of files) {
+        const bytes = new Uint8Array(await (await fetch(f.url)).arrayBuffer());
+        const isPdf = bytes[0] === 0x25 && bytes[1] === 0x50;
+        if (isPdf) {
+          const src = await PDFDocument.load(bytes);
+          const pages = await merged.copyPages(src, src.getPageIndices());
+          pages.forEach((p) => merged.addPage(p));
+        } else {
+          const isPng = bytes[0] === 0x89 && bytes[1] === 0x50;
+          const img = isPng ? await merged.embedPng(bytes) : await merged.embedJpg(bytes);
+          const page = merged.addPage([595.28, 841.89]);
+          const scale = Math.min((595.28 - 40) / img.width, (841.89 - 40) / img.height);
+          const w = img.width * scale;
+          const h = img.height * scale;
+          page.drawImage(img, { x: (595.28 - w) / 2, y: (841.89 - h) / 2, width: w, height: h });
+        }
+      }
+      const out = await merged.save();
+      const blob = new Blob([out as BlobPart], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `paket-do-${lot.replace(/\s+/g, "-").toLowerCase()}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`${files.length} dokumen DO digabung untuk ${lot}`);
+    } catch (err) {
+      console.error(err);
+      toast.error("Gagal menggabungkan dokumen DO");
+    } finally {
+      setMerging(false);
+    }
+  }
 
   async function exportExcel() {
     if (records.length === 0) {
@@ -185,7 +241,7 @@ function HistoryPage() {
 
 
   function resetFilters() {
-    setFilters({ from: "", to: todayStr(), material: "ALL", vendor: "", plate: "", spk: "" });
+    setFilters({ from: "", to: todayStr(), material: "ALL", vendor: "", plate: "", spk: "", lot: "ALL" });
   }
 
   return (
@@ -201,10 +257,16 @@ function HistoryPage() {
             Rekap seluruh transaksi jembatan timbang PLTU Ombilin.
           </p>
         </div>
-        <Button onClick={exportExcel} className="bg-gradient-gold text-primary hover:opacity-90">
-          <Download className="mr-2 h-4 w-4" />
-          Export to Excel
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={downloadCombinedDo} disabled={merging}>
+            {merging ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Files className="mr-2 h-4 w-4" />}
+            Download Combined DO (PDF)
+          </Button>
+          <Button onClick={exportExcel} className="bg-gradient-gold text-primary hover:opacity-90">
+            <Download className="mr-2 h-4 w-4" />
+            Export to Excel
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -215,7 +277,7 @@ function HistoryPage() {
             Filter Pencarian
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-4 lg:grid-cols-7">
+        <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-4 lg:grid-cols-8">
           <div className="space-y-1.5">
             <Label className="text-xs">Dari Tanggal</Label>
             <Input
@@ -286,6 +348,21 @@ function HistoryPage() {
               />
             </div>
           </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Lot ke-</Label>
+            <Select
+              value={filters.lot || "ALL"}
+              onValueChange={(v) => setFilters((f) => ({ ...f, lot: v }))}
+            >
+              <SelectTrigger><SelectValue placeholder="Semua Lot" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">Semua Lot</SelectItem>
+                {lots.map((l) => (
+                  <SelectItem key={l} value={l}>{l}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="flex items-end">
             <Button variant="outline" onClick={resetFilters} className="w-full">
               <X className="mr-1 h-3.5 w-3.5" />
@@ -315,6 +392,8 @@ function DetailTable({
             <TableHeader>
               <TableRow className="bg-secondary/50">
                 <TableHead className="pl-6">Nomor DO</TableHead>
+                <TableHead>Nomor Tiket</TableHead>
+                <TableHead>Lot ke-</TableHead>
                 <TableHead>No Polisi</TableHead>
                 <TableHead>Pemasok</TableHead>
                 <TableHead>Material</TableHead>
@@ -322,20 +401,21 @@ function DetailTable({
                 <TableHead className="text-right">Tara</TableHead>
                 <TableHead className="text-right">Netto</TableHead>
                 <TableHead>Jam Masuk</TableHead>
-                <TableHead className="pr-6">Jam Keluar</TableHead>
+                <TableHead>Jam Keluar</TableHead>
+                <TableHead className="pr-6">Arsip DO</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading && (
                 <TableRow>
-                  <TableCell colSpan={9} className="py-10 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={12} className="py-10 text-center text-sm text-muted-foreground">
                     Memuat...
                   </TableCell>
                 </TableRow>
               )}
               {!loading && records.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={9} className="py-10 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={12} className="py-10 text-center text-sm text-muted-foreground">
                     Tidak ada data yang cocok dengan filter.
                   </TableCell>
                 </TableRow>
@@ -343,6 +423,8 @@ function DetailTable({
               {records.map((r) => (
                 <TableRow key={r.id}>
                   <TableCell className="pl-6 font-mono text-xs">{r.do_number ?? "—"}</TableCell>
+                  <TableCell className="font-mono text-xs">{r.ticket_number ?? "—"}</TableCell>
+                  <TableCell className="whitespace-nowrap text-xs font-semibold">{r.lot_number ?? "—"}</TableCell>
                   <TableCell className="font-mono font-semibold">{r.plate_number}</TableCell>
                   <TableCell className="max-w-[200px] truncate">{r.vendor_name}</TableCell>
                   <TableCell>
@@ -354,7 +436,10 @@ function DetailTable({
                     {fmtKg(r.net_weight)}
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-xs">{fmtDateTimeShort(r.time_in)}</TableCell>
-                  <TableCell className="whitespace-nowrap pr-6 text-xs">{fmtDateTimeShort(r.time_out)}</TableCell>
+                  <TableCell className="whitespace-nowrap text-xs">{fmtDateTimeShort(r.time_out)}</TableCell>
+                  <TableCell className="pr-6">
+                    <DoArchiveCell record={r} />
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
