@@ -257,10 +257,16 @@ function HistoryPage() {
             Rekap seluruh transaksi jembatan timbang PLTU Ombilin.
           </p>
         </div>
-        <Button onClick={exportExcel} className="bg-gradient-gold text-primary hover:opacity-90">
-          <Download className="mr-2 h-4 w-4" />
-          Export to Excel
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={downloadCombinedDo} disabled={merging}>
+            {merging ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Files className="mr-2 h-4 w-4" />}
+            Download Combined DO (PDF)
+          </Button>
+          <Button onClick={exportExcel} className="bg-gradient-gold text-primary hover:opacity-90">
+            <Download className="mr-2 h-4 w-4" />
+            Export to Excel
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
